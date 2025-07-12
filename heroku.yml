@@ -1,7 +1,5 @@
 build:
   docker:
-    web:
-      dockerfile: backend/skillswap/Dockerfile
-      context: backend/skillswap
+    web: backend/skillswap/Dockerfile
 run:
   web: ./main
