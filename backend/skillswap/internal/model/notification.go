@@ -10,14 +10,14 @@ import (
 type NotificationType string
 
 const (
-	NotificationTypeSwapRequest     NotificationType = "swap_request"
-	NotificationTypeSwapAccepted    NotificationType = "swap_accepted"
-	NotificationTypeSwapRejected    NotificationType = "swap_rejected"
-	NotificationTypeSwapCompleted   NotificationType = "swap_completed"
-	NotificationTypeNewRating       NotificationType = "new_rating"
-	NotificationTypeSkillMatched    NotificationType = "skill_matched"
-	NotificationTypeSystemAlert     NotificationType = "system_alert"
-	NotificationTypeAdminNotice     NotificationType = "admin_notice"
+	NotificationTypeSwapRequest   NotificationType = "swap_request"
+	NotificationTypeSwapAccepted  NotificationType = "swap_accepted"
+	NotificationTypeSwapRejected  NotificationType = "swap_rejected"
+	NotificationTypeSwapCompleted NotificationType = "swap_completed"
+	NotificationTypeNewRating     NotificationType = "new_rating"
+	NotificationTypeSkillMatched  NotificationType = "skill_matched"
+	NotificationTypeSystemAlert   NotificationType = "system_alert"
+	NotificationTypeAdminNotice   NotificationType = "admin_notice"
 )
 
 type Notification struct {

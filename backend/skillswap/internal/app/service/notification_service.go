@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
+	models "github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -132,7 +132,7 @@ func (s *NotificationService) CreateSkillMatchNotification(userID uuid.UUID, mat
 // CreateSystemNotification creates system-wide notification
 func (s *NotificationService) CreateSystemNotification(userIDs []uuid.UUID, title, message string) error {
 	notifications := make([]models.Notification, len(userIDs))
-	
+
 	for i, userID := range userIDs {
 		notifications[i] = models.Notification{
 			UserID:  userID,
@@ -156,7 +156,7 @@ func (s *NotificationService) GetUserNotifications(userID uuid.UUID, page, limit
 	var total int64
 
 	query := s.db.Model(&models.Notification{}).Where("user_id = ?", userID)
-	
+
 	if unreadOnly {
 		query = query.Where("is_read = ?", false)
 	}
@@ -245,7 +245,7 @@ func (s *NotificationService) GetNotificationStats(userID uuid.UUID) (*models.No
 // CleanupOldNotifications removes notifications older than specified days
 func (s *NotificationService) CleanupOldNotifications(daysOld int) error {
 	cutoffDate := time.Now().AddDate(0, 0, -daysOld)
-	
+
 	result := s.db.Where("created_at < ?", cutoffDate).Delete(&models.Notification{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to cleanup old notifications: %w", result.Error)
@@ -257,7 +257,7 @@ func (s *NotificationService) CleanupOldNotifications(daysOld int) error {
 // GetNotificationByID retrieves a specific notification
 func (s *NotificationService) GetNotificationByID(userID, notificationID uuid.UUID) (*models.Notification, error) {
 	var notification models.Notification
-	
+
 	if err := s.db.Where("user_id = ? AND notification_id = ?", userID, notificationID).
 		First(&notification).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {

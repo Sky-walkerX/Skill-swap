@@ -11,17 +11,17 @@ import (
 	"strings"
 
 	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/config"
-	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
+	models "github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type FileUploadService struct {
-	db             *gorm.DB
-	uploadDir      string
-	maxFileSize    int64
-	allowedTypes   map[string]bool
-	baseURL        string
+	db           *gorm.DB
+	uploadDir    string
+	maxFileSize  int64
+	allowedTypes map[string]bool
+	baseURL      string
 }
 
 func NewFileUploadService(db *gorm.DB, cfg config.Config) *FileUploadService {
@@ -46,11 +46,11 @@ func NewFileUploadService(db *gorm.DB, cfg config.Config) *FileUploadService {
 	}
 
 	return &FileUploadService{
-		db:             db,
-		uploadDir:      uploadDir,
-		maxFileSize:    5 * 1024 * 1024, // 5MB default
-		allowedTypes:   allowedTypes,
-		baseURL:        cfg.BaseURL,
+		db:           db,
+		uploadDir:    uploadDir,
+		maxFileSize:  5 * 1024 * 1024, // 5MB default
+		allowedTypes: allowedTypes,
+		baseURL:      cfg.BaseURL,
 	}
 }
 
@@ -150,7 +150,7 @@ func (s *FileUploadService) DeleteUserPhoto(userID uuid.UUID) error {
 // GetFileInfo returns information about a file
 func (s *FileUploadService) GetFileInfo(userID uuid.UUID, filename string) (*models.FileInfo, error) {
 	filePath := filepath.Join(s.uploadDir, "users", userID.String(), filename)
-	
+
 	info, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -160,10 +160,10 @@ func (s *FileUploadService) GetFileInfo(userID uuid.UUID, filename string) (*mod
 	}
 
 	return &models.FileInfo{
-		Filename:  filename,
-		Size:      info.Size(),
-		ModTime:   info.ModTime(),
-		URL:       s.generateFileURL(userID, filename),
+		Filename: filename,
+		Size:     info.Size(),
+		ModTime:  info.ModTime(),
+		URL:      s.generateFileURL(userID, filename),
 	}, nil
 }
 
@@ -200,13 +200,13 @@ func (s *FileUploadService) validateFile(file *multipart.FileHeader) error {
 // generateFilename generates a unique filename
 func (s *FileUploadService) generateFilename(originalName string) (string, error) {
 	ext := filepath.Ext(originalName)
-	
+
 	// Generate random bytes for unique filename
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
-	
+
 	return fmt.Sprintf("%s%s", hex.EncodeToString(bytes), ext), nil
 }
 
@@ -234,7 +234,7 @@ func (s *FileUploadService) updateUserPhotoURL(userID uuid.UUID, photoURL string
 // CleanupOrphanedFiles removes files that are not referenced in the database
 func (s *FileUploadService) CleanupOrphanedFiles() error {
 	userDir := filepath.Join(s.uploadDir, "users")
-	
+
 	return filepath.Walk(userDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -267,11 +267,11 @@ func (s *FileUploadService) CleanupOrphanedFiles() error {
 		// Check if file is referenced in database
 		var count int64
 		expectedURL := s.generateFileURL(userID, filename)
-		
+
 		err = s.db.Model(&models.User{}).
 			Where("user_id = ? AND photo_url = ?", userID, expectedURL).
 			Count(&count).Error
-		
+
 		if err != nil {
 			return err
 		}

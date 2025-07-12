@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/app/service"
-	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
+	models "github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
