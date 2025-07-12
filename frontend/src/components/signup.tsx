@@ -4,67 +4,70 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SiGoogle } from 'react-icons/si';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface UserDataType {
+  name: string;
   email: string;
   password: string;
 }
 
-export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
-  const [userData, setUserData] = useState<UserDataType>({ email: '', password: '' });
+export function SignupForm({ className, ...props }: React.ComponentProps<'div'>) {
+  const [userData, setUserData] = useState<UserDataType>({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError('');
-    setLoading(true);
+const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  setError('');
+  setLoading(true);
 
-    try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
+  try {
+    const res = await fetch(`${API}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) throw new Error(data?.message || 'Login failed');
+    if (!res.ok) throw new Error(data?.message || 'Signup failed');
 
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
 
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    router.push('/');
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleSocialLogin = (provider: string) => {
-    if (provider === 'google') {
-      window.location.href = `${API}/auth/google`; // updated to use the API URL from .env
-    }
-  };
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleLogin}>
+          <form className="p-6 md:p-8" onSubmit={handleSignup}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
-                <p className="text-muted-foreground">Login to your SkillSwap account</p>
+                <h1 className="text-2xl font-bold">Create an account</h1>
+                <p className="text-muted-foreground">Sign up for SkillSwap</p>
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" required placeholder="John Doe"
+                  value={userData.name}
+                  onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                />
               </div>
 
               <div className="grid gap-3">
@@ -80,32 +83,19 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                 <Input id="password" type="password" required
                   value={userData.password}
                   onChange={(e) => setUserData({ ...userData, password: e.target.value })}
-                  placeholder="Enter your password"
+                  placeholder="Create a strong password"
                 />
               </div>
 
               {error && <p className="text-red-500 text-sm">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Logging in...' : 'Login'}
-              </Button>
-
-              <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">Or continue with</span>
-              </div>
-
-              <Button variant="outline" type="button" className="w-full"
-                disabled={loading}
-                onClick={() => handleSocialLogin('google')}
-              >
-                <span className="flex gap-2 justify-center items-center">
-                  <SiGoogle className="h-4 w-4" /> Google
-                </span>
+                {loading ? 'Creating Account...' : 'Sign up'}
               </Button>
 
               <div className="text-center text-sm">
-                Don&apos;t have an account?{' '}
-                <a href="/auth/signup" className="underline underline-offset-4">Sign up</a>
+                Already have an account?{' '}
+                <a href="/auth/signin" className="underline underline-offset-4">Login</a>
               </div>
             </div>
           </form>
