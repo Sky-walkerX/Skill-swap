@@ -1,123 +1,128 @@
-import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useInView } from 'react-intersection-observer';
-import { Card, CardContent } from '@/components/ui/card';
-import { Users, Shield, Zap, Target, Star, Award } from 'lucide-react';
+"use client"
 
-gsap.registerPlugin(ScrollTrigger);
+import { useEffect, useRef } from "react"
+import { motion } from "framer-motion"
+import { gsap } from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useInView } from "react-intersection-observer"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users, Shield, Zap, Target, Star, Award, Heart, Globe } from "lucide-react"
+
+gsap.registerPlugin(ScrollTrigger)
 
 const FeaturesSection = () => {
-  const sectionRef = useRef(null);
+  const sectionRef = useRef(null)
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: true,
-  });
+  })
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray('.feature-card');
-      
+      const cards = gsap.utils.toArray(".feature-card")
+
       cards.forEach((card: any, index) => {
-        gsap.fromTo(card, 
-          { y: 100, opacity: 0 },
+        gsap.fromTo(
+          card,
+          { y: 80, opacity: 0, rotateY: 15 },
           {
             y: 0,
             opacity: 1,
+            rotateY: 0,
             duration: 0.8,
-            delay: index * 0.2,
+            delay: index * 0.15,
             scrollTrigger: {
               trigger: card,
-              start: "top 80%",
+              start: "top 85%",
               end: "bottom 20%",
-              toggleActions: "play none none reverse"
-            }
-          }
-        );
-      });
+              toggleActions: "play none none reverse",
+            },
+          },
+        )
+      })
+    }, sectionRef)
 
-      // Parallax effect for the section
-      gsap.to('.features-bg', {
-        yPercent: -50,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true
-        }
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+    return () => ctx.revert()
+  }, [])
 
   const features = [
     {
       icon: Users,
       title: "Global Community",
-      description: "Connect with skilled professionals from around the world and expand your network.",
-      stats: "50+ Countries"
+      description: "Connect with passionate learners and experts from every corner of the world.",
+      stats: "50+ Countries",
+      color: "from-sage-500 to-sage-600",
     },
     {
       icon: Shield,
-      title: "Verified Skills",
-      description: "Our verification system ensures quality interactions and trustworthy skill exchanges.",
-      stats: "95% Verified"
+      title: "Trust & Safety",
+      description: "Comprehensive verification and review system ensures quality exchanges.",
+      stats: "99% Verified",
+      color: "from-terracotta-500 to-terracotta-600",
     },
     {
       icon: Zap,
-      title: "Instant Matching",
-      description: "Advanced AI algorithm matches you with the perfect skill exchange partners in seconds.",
-      stats: "< 2 sec"
+      title: "Smart Matching",
+      description: "AI-powered algorithm finds your perfect skill exchange partner instantly.",
+      stats: "< 1 minute",
+      color: "from-amber-500 to-amber-600",
     },
     {
       icon: Target,
-      title: "Goal Tracking",
-      description: "Set learning objectives and track your progress with detailed analytics and insights.",
-      stats: "100% Tracked"
+      title: "Goal Achievement",
+      description: "Set learning milestones and track your progress with detailed insights.",
+      stats: "95% Complete",
+      color: "from-emerald-500 to-emerald-600",
     },
     {
       icon: Star,
       title: "Quality Assured",
-      description: "Rating system and reviews ensure high-quality skill exchanges and learning experiences.",
-      stats: "4.9/5 Rating"
+      description: "Community-driven ratings ensure exceptional learning experiences.",
+      stats: "4.9/5 Rating",
+      color: "from-violet-500 to-violet-600",
     },
     {
       icon: Award,
-      title: "Skill Badges",
-      description: "Earn digital badges and certificates as you master new skills and help others learn.",
-      stats: "500+ Badges"
-    }
-  ];
+      title: "Recognition",
+      description: "Earn verified certificates and showcase your newly acquired skills.",
+      stats: "1000+ Badges",
+      color: "from-rose-500 to-rose-600",
+    },
+  ]
 
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "UX Designer",
-      text: "I exchanged my design skills for coding lessons. Amazing community!",
-      avatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?w=150"
+      name: "Maya Patel",
+      role: "Product Designer",
+      text: "Traded my design skills for data science knowledge. The community here is incredible!",
+      avatar: "/placeholder.svg?height=60&width=60",
+      skill: "UI/UX → Python",
     },
     {
-      name: "Marcus Johnson",
-      role: "Data Scientist",
-      text: "Found the perfect mentor for machine learning in just 2 days.",
-      avatar: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?w=150"
+      name: "James Chen",
+      role: "Software Engineer",
+      text: "Found my photography mentor in just one day. The matching system is phenomenal.",
+      avatar: "/placeholder.svg?height=60&width=60",
+      skill: "React → Photography",
     },
     {
-      name: "Elena Rodriguez",
-      role: "Marketing Expert",
-      text: "The skill verification system gave me confidence in every exchange.",
-      avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?w=150"
-    }
-  ];
+      name: "Sofia Rodriguez",
+      role: "Marketing Specialist",
+      text: "The verification process gave me confidence. Every exchange has been valuable.",
+      avatar: "/placeholder.svg?height=60&width=60",
+      skill: "Marketing → French",
+    },
+  ]
 
   return (
-    <section ref={sectionRef} className="relative py-20 bg-white dark:bg-gray-900 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="features-bg absolute inset-0 opacity-5 dark:opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600"></div>
+    <section
+      ref={sectionRef}
+      className="relative py-24 dark:from-sage-900 dark:via-terracotta-900 dark:to-amber-900 overflow-hidden"
+    >
+      {/* Organic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-sage-200/30 to-terracotta-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-amber-200/30 to-emerald-200/30 rounded-full blur-3xl"></div>
       </div>
 
       <div ref={ref} className="container mx-auto px-4 relative z-10">
@@ -126,41 +131,47 @@ const FeaturesSection = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
-            Why Choose SkillShare Connect?
+          <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-6 py-3 rounded-full mb-6">
+            <Heart className="h-5 w-5 text-terracotta-600" />
+            <span className="text-sage-700 dark:text-sage-200 font-medium">Why Choose Us</span>
+          </div>
+
+          <h2 className="text-4xl md:text-6xl font-bold mb-8 text-stone-900 dark:text-stone-100">
+            Built for{" "}
+            <span className="bg-amber-500 bg-clip-text text-transparent">
+              Real Learning
+            </span>
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Join thousands of professionals who are already growing their careers through skill exchange
+          <p className="text-xl text-stone-600 dark:text-stone-300 max-w-3xl mx-auto leading-relaxed">
+            Every feature is designed to create meaningful connections and accelerate your professional growth
           </p>
         </motion.div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
           {features.map((feature, index) => (
             <motion.div
               key={index}
               className="feature-card"
-              whileHover={{ y: -10, scale: 1.02 }}
+              whileHover={{ y: -8, scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+              <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 backdrop-blur-sm dark:bg-stone-800/80 rounded-3xl overflow-hidden group">
                 <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg mr-4">
-                      <feature.icon className="h-6 w-6 text-white" />
+                  <div className="flex items-start justify-between mb-6">
+                    <div
+                      className={`p-4 bg-gradient-to-r ${feature.color} rounded-2xl group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <feature.icon className="h-7 w-7 text-white" />
                     </div>
-                    <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                      {feature.stats}
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-stone-500 dark:text-stone-400">{feature.stats}</div>
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <h3 className="text-2xl font-bold mb-4 text-stone-900 dark:text-stone-100">{feature.title}</h3>
+                  <p className="text-stone-600 dark:text-stone-300 leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -174,10 +185,15 @@ const FeaturesSection = () => {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="text-center"
         >
-          <h3 className="text-2xl md:text-3xl font-bold mb-12 text-gray-900 dark:text-white">
-            What Our Community Says
+          <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-6 py-3 rounded-full mb-8">
+            <Globe className="h-5 w-5 text-sage-600" />
+            <span className="text-sage-700 dark:text-sage-200 font-medium">Success Stories</span>
+          </div>
+
+          <h3 className="text-3xl md:text-4xl font-bold mb-16 text-stone-900 dark:text-stone-100">
+            Real People, Real Growth
           </h3>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <motion.div
@@ -185,25 +201,24 @@ const FeaturesSection = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.5, delay: 0.7 + index * 0.2 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, y: -5 }}
               >
-                <Card className="p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                <Card className="p-8 border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 backdrop-blur-sm dark:bg-stone-800/80 rounded-3xl">
                   <CardContent className="p-0 text-center">
                     <img
-                      src={testimonial.avatar}
+                      src={testimonial.avatar || "/placeholder.svg"}
                       alt={testimonial.name}
-                      className="w-16 h-16 rounded-full mx-auto mb-4 object-cover"
+                      className="w-16 h-16 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg"
                     />
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 italic">
+                    <div className="inline-block bg-gradient-to-r from-sage-100 to-terracotta-100 dark:from-sage-800 dark:to-terracotta-800 px-4 py-2 rounded-full text-sm font-medium text-stone-700 dark:text-stone-300 mb-4">
+                      {testimonial.skill}
+                    </div>
+                    <p className="text-stone-600 dark:text-stone-300 mb-6 italic leading-relaxed">
                       "{testimonial.text}"
                     </p>
                     <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        {testimonial.name}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {testimonial.role}
-                      </div>
+                      <div className="font-bold text-stone-900 dark:text-stone-100 text-lg">{testimonial.name}</div>
+                      <div className="text-stone-500 dark:text-stone-400">{testimonial.role}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -213,7 +228,7 @@ const FeaturesSection = () => {
         </motion.div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default FeaturesSection;
+export default FeaturesSection

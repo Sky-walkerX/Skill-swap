@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50`}>
 				<SmoothScroll />
 				<QueryClientProvider>{children}</QueryClientProvider>
 			</body>
