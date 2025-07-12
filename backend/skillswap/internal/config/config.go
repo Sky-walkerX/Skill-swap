@@ -17,14 +17,20 @@ type Config struct {
 
 func Load() Config {
 	_ = godotenv.Load()
-	dbURL := os.Getenv("DB_URL")
+
+	// Try DATABASE_URL first (Heroku format), then fall back to DB_URL
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		dbURL = os.Getenv("DB_URL")
+	}
+
 	port := os.Getenv("PORT")
 	jwtSecret := os.Getenv("JWT_SECRET")
 	uploadDir := os.Getenv("UPLOAD_DIR")
 	baseURL := os.Getenv("BASE_URL")
 
 	if dbURL == "" {
-		log.Fatal("DB_URL missing")
+		log.Fatal("DATABASE_URL or DB_URL environment variable is required")
 	}
 
 	if jwtSecret == "" {

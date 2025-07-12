@@ -242,7 +242,17 @@ func (h *Handler) DeleteSkill(c *gin.Context) {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/users/skills/offered [post]
 func (h *Handler) AddOfferedSkill(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	var req UserSkillRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -287,7 +297,17 @@ func (h *Handler) AddOfferedSkill(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse
 // @Router /api/v1/users/skills/offered/{id} [delete]
 func (h *Handler) RemoveOfferedSkill(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	skillIDStr := c.Param("id")
 	skillID, err := uuid.Parse(skillIDStr)
@@ -322,7 +342,17 @@ func (h *Handler) RemoveOfferedSkill(c *gin.Context) {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/users/skills/wanted [post]
 func (h *Handler) AddWantedSkill(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	var req UserSkillRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -367,7 +397,17 @@ func (h *Handler) AddWantedSkill(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse
 // @Router /api/v1/users/skills/wanted/{id} [delete]
 func (h *Handler) RemoveWantedSkill(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	skillIDStr := c.Param("id")
 	skillID, err := uuid.Parse(skillIDStr)
@@ -400,7 +440,17 @@ func (h *Handler) RemoveWantedSkill(c *gin.Context) {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/users/skills/offered [get]
 func (h *Handler) GetUserOfferedSkills(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	skills, err := h.skillService.GetUserOfferedSkills(userID)
 	if err != nil {
@@ -431,7 +481,17 @@ func (h *Handler) GetUserOfferedSkills(c *gin.Context) {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/users/skills/wanted [get]
 func (h *Handler) GetUserWantedSkills(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	skills, err := h.skillService.GetUserWantedSkills(userID)
 	if err != nil {
