@@ -75,6 +75,25 @@ func ConfigurableCORS(config ...CORSConfig) gin.HandlerFunc {
 	}
 }
 
+// CORSWithFrontendURL creates CORS config with specified frontend URL
+func CORSWithFrontendURL(frontendURL string) CORSConfig {
+	return CORSConfig{
+		AllowOrigins: []string{frontendURL, "http://localhost:3000", "http://localhost:3001"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Accept",
+			"Authorization",
+			"X-Requested-With",
+			"X-CSRF-Token",
+			"Cache-Control",
+		},
+		AllowCredentials: true,
+		MaxAge:           86400, // 24 hours
+	}
+}
+
 // Helper functions
 func joinStrings(slice []string, separator string) string {
 	if len(slice) == 0 {

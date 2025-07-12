@@ -32,11 +32,11 @@ func main() {
 	// Add middleware
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recovery())
-	router.Use(middleware.CORS())
+	router.Use(middleware.ConfigurableCORS(middleware.CORSWithFrontendURL(cfg.FrontendURL)))
 	router.Use(middleware.SecurityHeaders())
 
 	// Setup health routes
-	apirouter.SetupHealthRoutes(router)
+	apirouter.SetupHealthRoutes(router, &cfg)
 
 	// Setup API routes
 	api := router.Group("/api/v1")

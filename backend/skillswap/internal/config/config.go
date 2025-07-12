@@ -8,11 +8,12 @@ import (
 )
 
 type Config struct {
-	DBUrl     string
-	Port      string
-	JWTSecret string
-	UploadDir string
-	BaseURL   string
+	DBUrl       string
+	Port        string
+	JWTSecret   string
+	UploadDir   string
+	BaseURL     string
+	FrontendURL string
 }
 
 func Load() Config {
@@ -28,6 +29,7 @@ func Load() Config {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	uploadDir := os.Getenv("UPLOAD_DIR")
 	baseURL := os.Getenv("BASE_URL")
+	frontendURL := os.Getenv("FRONTEND_URL")
 
 	if dbURL == "" {
 		log.Fatal("DATABASE_URL or DB_URL environment variable is required")
@@ -46,15 +48,20 @@ func Load() Config {
 		baseURL = "http://localhost:8080"
 	}
 
+	if frontendURL == "" {
+		frontendURL = "http://localhost:3000"
+	}
+
 	if port == "" {
 		port = "8080"
 	}
 
 	return Config{
-		DBUrl:     dbURL,
-		Port:      port,
-		JWTSecret: jwtSecret,
-		UploadDir: uploadDir,
-		BaseURL:   baseURL,
+		DBUrl:       dbURL,
+		Port:        port,
+		JWTSecret:   jwtSecret,
+		UploadDir:   uploadDir,
+		BaseURL:     baseURL,
+		FrontendURL: frontendURL,
 	}
 }

@@ -9,7 +9,13 @@ const nextConfig: NextConfig = {
 				pathname: '/id/**'
 			}
 		]
-	}
+	},
+	// Allow configuration of development server port
+	...(process.env.NODE_ENV === 'development' && {
+		experimental: {
+			serverComponentsExternalPackages: []
+		}
+	})
 };
 
 export default nextConfig;
