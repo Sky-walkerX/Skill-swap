@@ -17,21 +17,21 @@ const (
 )
 
 type SwapRequest struct {
-	SwapID         uuid.UUID   `gorm:"type:uuid;primaryKey;column:swap_id;default:gen_random_uuid()"`
-	RequesterID    uuid.UUID   `gorm:"type:uuid;column:requester_id;index"`
-	ResponderID    uuid.UUID   `gorm:"type:uuid;column:responder_id;index"`
-	OfferedSkillID uuid.UUID   `gorm:"type:uuid;column:offered_skill_id"`
-	WantedSkillID  uuid.UUID   `gorm:"type:uuid;column:wanted_skill_id"`
-	Status         SwapStatus  `gorm:"type:swap_status;default:'pending'"`
-	CreatedAt      time.Time   `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt      time.Time   `gorm:"column:updated_at;autoUpdateTime"`
+	SwapID         uuid.UUID      `gorm:"type:uuid;primaryKey;column:swap_id;default:gen_random_uuid()"`
+	RequesterID    uuid.UUID      `gorm:"type:uuid;column:requester_id;index"`
+	ResponderID    uuid.UUID      `gorm:"type:uuid;column:responder_id;index"`
+	OfferedSkillID uuid.UUID      `gorm:"type:uuid;column:offered_skill_id"`
+	WantedSkillID  uuid.UUID      `gorm:"type:uuid;column:wanted_skill_id"`
+	Status         SwapStatus     `gorm:"type:swap_status;default:'pending'"`
+	CreatedAt      time.Time      `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt      time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt      gorm.DeletedAt `gorm:"column:deleted_at;index"`
 
 	// Relations - restored
-	Requester    User  `gorm:"foreignKey:RequesterID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Responder    User  `gorm:"foreignKey:ResponderID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	OfferedSkill Skill `gorm:"foreignKey:OfferedSkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
-	WantedSkill  Skill `gorm:"foreignKey:WantedSkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Requester    User         `gorm:"foreignKey:RequesterID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Responder    User         `gorm:"foreignKey:ResponderID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	OfferedSkill Skill        `gorm:"foreignKey:OfferedSkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	WantedSkill  Skill        `gorm:"foreignKey:WantedSkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	Ratings      []SwapRating `gorm:"foreignKey:SwapID;references:SwapID"`
 }
 

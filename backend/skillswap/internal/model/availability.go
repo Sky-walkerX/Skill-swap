@@ -15,7 +15,7 @@ type AvailabilitySlot struct {
 	StartTime  time.Time `gorm:"column:start_time;type:time;not null"`
 	EndTime    time.Time `gorm:"column:end_time;type:time;not null"`
 	CreatedAt  time.Time `gorm:"column:created_at;autoCreateTime"`
-	
+
 	// Relations - restored
 	User User `gorm:"foreignKey:UserID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
