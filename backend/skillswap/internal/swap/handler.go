@@ -145,7 +145,17 @@ func (h *Handler) getStringValue(ptr *string) string {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/swaps [post]
 func (h *Handler) CreateSwapRequest(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	var req CreateSwapRequestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -205,7 +215,17 @@ func (h *Handler) CreateSwapRequest(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse
 // @Router /api/v1/swaps/{id} [get]
 func (h *Handler) GetSwapRequest(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	swapIDStr := c.Param("id")
 	swapID, err := uuid.Parse(swapIDStr)
@@ -250,7 +270,17 @@ func (h *Handler) GetSwapRequest(c *gin.Context) {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/swaps [get]
 func (h *Handler) GetUserSwapRequests(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	// Parse query parameters
 	filter := appservice.SwapRequestFilter{}
@@ -336,7 +366,17 @@ func (h *Handler) GetUserSwapRequests(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse
 // @Router /api/v1/swaps/{id}/status [put]
 func (h *Handler) UpdateSwapStatus(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	swapIDStr := c.Param("id")
 	swapID, err := uuid.Parse(swapIDStr)
@@ -386,7 +426,17 @@ func (h *Handler) UpdateSwapStatus(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse
 // @Router /api/v1/swaps/{id} [delete]
 func (h *Handler) DeleteSwapRequest(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	swapIDStr := c.Param("id")
 	swapID, err := uuid.Parse(swapIDStr)
@@ -423,7 +473,17 @@ func (h *Handler) DeleteSwapRequest(c *gin.Context) {
 // @Failure 401 {object} ErrorResponse
 // @Router /api/v1/swaps/matches [get]
 func (h *Handler) GetPotentialMatches(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "User not authenticated"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user ID"})
+		return
+	}
 
 	matches, err := h.swapService.FindPotentialMatches(userID)
 	if err != nil {
