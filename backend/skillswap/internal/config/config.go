@@ -11,16 +11,26 @@ type Config struct {
 	DBUrl     string
 	Port      string
 	JWTSecret string
+	UploadDir string
+	BaseURL   string
 }
 
 func Load() Config {
 	_ = godotenv.Load()
-	dbURL := os.Getenv("DB_URL")
+
+	// Try DATABASE_URL first (Heroku format), then fall back to DB_URL
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		dbURL = os.Getenv("DB_URL")
+	}
+
 	port := os.Getenv("PORT")
 	jwtSecret := os.Getenv("JWT_SECRET")
+	uploadDir := os.Getenv("UPLOAD_DIR")
+	baseURL := os.Getenv("BASE_URL")
 
 	if dbURL == "" {
-		log.Fatal("DB_URL missing")
+		log.Fatal("DATABASE_URL or DB_URL environment variable is required")
 	}
 
 	if jwtSecret == "" {
@@ -28,9 +38,23 @@ func Load() Config {
 		log.Println("Warning: Using default JWT secret. Set JWT_SECRET environment variable in production.")
 	}
 
+	if uploadDir == "" {
+		uploadDir = "./uploads"
+	}
+
+	if baseURL == "" {
+		baseURL = "http://localhost:8080"
+	}
+
+	if port == "" {
+		port = "8080"
+	}
+
 	return Config{
 		DBUrl:     dbURL,
 		Port:      port,
 		JWTSecret: jwtSecret,
+		UploadDir: uploadDir,
+		BaseURL:   baseURL,
 	}
 }

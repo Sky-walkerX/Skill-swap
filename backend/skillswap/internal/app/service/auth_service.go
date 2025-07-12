@@ -174,7 +174,7 @@ func (s *authService) generateAuthResponse(user *models.User) (*AuthResponse, er
 	accessClaims := TokenClaims{
 		UserID:    user.UserID,
 		Email:     user.Email,
-		IsAdmin:   false, // TODO: Add admin field to user model
+		IsAdmin:   user.IsAdmin, // Use the user's actual admin status
 		TokenType: "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessTokenExp),
@@ -193,7 +193,7 @@ func (s *authService) generateAuthResponse(user *models.User) (*AuthResponse, er
 	refreshClaims := TokenClaims{
 		UserID:    user.UserID,
 		Email:     user.Email,
-		IsAdmin:   false,
+		IsAdmin:   user.IsAdmin, // Use the user's actual admin status
 		TokenType: "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshTokenExp),

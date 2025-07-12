@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
 import { Navigation } from '@/components/Navigation';
+import NextAuthSessionProvider from '@/components/AuthProvider';
 import './globals.css';
 import { SmoothScroll } from '@/components/smooth-scroll';
 
@@ -31,10 +32,12 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}
 			>
 				<SmoothScroll />
-				<QueryClientProvider>
-					<Navigation />
-					<main className="min-h-screen">{children}</main>
-				</QueryClientProvider>
+        <NextAuthSessionProvider>
+				  <QueryClientProvider>
+					  <Navigation />
+					  <main className="min-h-screen">{children}</main>
+				  </QueryClientProvider>
+				</NextAuthSessionProvider>
 			</body>
 		</html>
 	);
