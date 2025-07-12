@@ -1,3 +1,4 @@
+'use client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -5,13 +6,48 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SiGithub, SiGoogle } from 'react-icons/si';
 import Image from 'next/image';
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
+interface UserDataType {
+	email: string;
+	password: string;
+}
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
+	const [userData, setUserData] = useState<UserDataType>({
+		email: '',
+		password: ''
+	});
+	const [error, setError] = useState('');
+	const router = useRouter();
+	const [loading, setLoading] = useState(false);
+
+	const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setError('');
+		setLoading(true);
+
+		const res = await signIn('credentials', {
+			...userData,
+			redirect: false
+		});
+
+		if (res?.error) {
+			setError('Invalid credentials');
+		} else {
+			router.push('/'); // or wherever you want after login
+		}
+
+		setLoading(false);
+	};
+
 	return (
 		<div className={cn('flex flex-col gap-6', className)} {...props}>
 			<Card className="overflow-hidden p-0">
 				<CardContent className="grid p-0 md:grid-cols-2">
-					<form className="p-6 md:p-8">
+					<form className="p-6 md:p-8" onSubmit={handleLogin}>
 						<div className="flex flex-col gap-6">
 							<div className="flex flex-col items-center text-center">
 								<h1 className="text-2xl font-bold">Welcome back</h1>
@@ -26,6 +62,10 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
 									type="email"
 									placeholder="abc@example.com"
 									required
+									value={userData.email}
+									onChange={(e) =>
+										setUserData({ ...userData, email: e.target.value })
+									}
 								/>
 							</div>
 							<div className="grid gap-3">
@@ -38,9 +78,23 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
 										Forgot your password?
 									</a>
 								</div>
-								<Input id="password" type="password" required />
+								<Input
+									id="password"
+									type="password"
+									required
+									value={userData.password}
+									onChange={(e) =>
+										setUserData({ ...userData, password: e.target.value })
+									}
+									placeholder="Enter your password"
+								/>
 							</div>
-							<Button type="submit" className="w-full cursor-pointer">
+							{error && <p className="text-red-500">{error}</p>}
+							<Button
+								type="submit"
+								className="w-full cursor-pointer"
+								disabled={loading}
+							>
 								Login
 							</Button>
 							<div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -49,14 +103,26 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
 								</span>
 							</div>
 							<div className="grid grid-cols-2 gap-4">
-								<Button variant="outline" type="button" className="w-full">
+								<Button
+									variant="outline"
+									type="button"
+									className="w-full"
+									disabled={loading}
+									onClick={() => signIn('github')}
+								>
 									<span className="flex gap-2 justify-center items-center">
 										<SiGithub className="h-4 w-4" />
 										Github
 									</span>
 									<span className="sr-only">Login with Github</span>
 								</Button>
-								<Button variant="outline" type="button" className="w-full">
+								<Button
+									variant="outline"
+									type="button"
+									className="w-full"
+									disabled={loading}
+									onClick={() => signIn('github')}
+								>
 									<span className="flex gap-2 justify-center items-center">
 										<SiGoogle className="h-4 w-4" />
 										Google
