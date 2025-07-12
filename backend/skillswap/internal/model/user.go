@@ -15,6 +15,8 @@ type User struct {
 	Location     *string
 	PhotoURL     *string        `gorm:"column:photo_url"`
 	IsPublic     bool           `gorm:"column:is_public;default:true"`
+	IsAdmin      bool           `gorm:"column:is_admin;default:false"`
+	IsBanned     bool           `gorm:"column:is_banned;default:false"`
 	CreatedAt    time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt    time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt    gorm.DeletedAt `gorm:"column:deleted_at;index"`

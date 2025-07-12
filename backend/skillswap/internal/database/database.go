@@ -63,6 +63,11 @@ func Migrate(db *gorm.DB) error {
 	if hasAllTables(db) {
 		log.Println("✓ All core tables already exist")
 
+		// Run additional migrations
+		if err := runAdditionalMigrations(db); err != nil {
+			log.Printf("Warning: Could not run additional migrations: %v", err)
+		}
+
 		// Still try to seed default skills
 		if err := seedDefaultSkills(db); err != nil {
 			log.Printf("Warning: Could not seed default skills: %v", err)
@@ -81,6 +86,11 @@ func Migrate(db *gorm.DB) error {
 	// Insert default skills if they don't exist
 	if err := seedDefaultSkills(db); err != nil {
 		log.Printf("Warning: Could not seed default skills: %v", err)
+	}
+
+	// Run additional migrations
+	if err := runAdditionalMigrations(db); err != nil {
+		log.Printf("Warning: Could not run additional migrations: %v", err)
 	}
 
 	log.Println("✅ Database migrations completed successfully")
@@ -265,6 +275,89 @@ CREATE TRIGGER update_swap_requests_updated_at
 	return nil
 }
 
+// runAdditionalMigrations runs additional migration scripts
+func runAdditionalMigrations(db *gorm.DB) error {
+	log.Println("Running additional migrations...")
+
+	// Check if admin fields already exist
+	var hasAdminField bool
+	err := db.Raw("SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='is_admin')").Scan(&hasAdminField).Error
+	if err != nil {
+		return err
+	}
+
+	if !hasAdminField {
+		log.Println("Adding admin and ban fields to users table...")
+
+		// Add admin and ban fields
+		sql := `
+			ALTER TABLE users 
+			ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE,
+			ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE;
+
+			-- Create indexes for admin lookups
+			CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin);
+			CREATE INDEX IF NOT EXISTS idx_users_is_banned ON users(is_banned);
+		`
+
+		if err := db.Exec(sql).Error; err != nil {
+			return err
+		}
+
+		log.Println("✓ Added admin and ban fields to users table")
+	} else {
+		log.Println("✓ Admin fields already exist")
+	}
+
+	// Check if notifications table exists
+	var hasNotificationsTable bool
+	err = db.Raw("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='notifications')").Scan(&hasNotificationsTable).Error
+	if err != nil {
+		return err
+	}
+
+	if !hasNotificationsTable {
+		log.Println("Creating notifications table...")
+
+		// Create notifications table
+		sql := `
+			CREATE TABLE IF NOT EXISTS notifications (
+				notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+				user_id UUID NOT NULL,
+				type VARCHAR(50) NOT NULL,
+				title VARCHAR(255) NOT NULL,
+				message TEXT NOT NULL,
+				is_read BOOLEAN DEFAULT FALSE,
+				related_id UUID,
+				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+				deleted_at TIMESTAMP WITH TIME ZONE,
+				
+				FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+			);
+
+			-- Create indexes for better performance
+			CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+			CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+			CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+			CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+			CREATE INDEX IF NOT EXISTS idx_notifications_deleted_at ON notifications(deleted_at);
+
+			-- Create composite index for common queries
+			CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id, is_read) WHERE deleted_at IS NULL;
+		`
+
+		if err := db.Exec(sql).Error; err != nil {
+			return err
+		}
+
+		log.Println("✓ Created notifications table")
+	} else {
+		log.Println("✓ Notifications table already exists")
+	}
+
+	return nil
+}
+
 // hasAllTables checks if all required tables exist
 func hasAllTables(db *gorm.DB) bool {
 	tables := []interface{}{
@@ -275,6 +368,7 @@ func hasAllTables(db *gorm.DB) bool {
 		&models.UserSkillWanted{},
 		&models.SwapRequest{},
 		&models.SwapRating{},
+		&models.Notification{},
 	}
 
 	for _, table := range tables {

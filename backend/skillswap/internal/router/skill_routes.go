@@ -2,21 +2,32 @@ package router
 
 import (
 	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/config"
+	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/middleware"
+	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/skill"
 	"github.com/gin-gonic/gin"
 )
 
 // SetupSkillRoutes configures all skill-related routes
-func SetupSkillRoutes(api *gin.RouterGroup, cfg *config.Config) {
-	// TODO: Implement skill routes
-	// - GET /skills - List all available skills
-	// - POST /skills - Create new skill (admin only)
-	// - PUT /skills/:id - Update skill (admin only)
-	// - DELETE /skills/:id - Delete skill (admin only)
-	// - POST /users/skills/offered - Add skill to user's offered skills
-	// - DELETE /users/skills/offered/:id - Remove offered skill
-	// - POST /users/skills/wanted - Add skill to user's wanted skills
-	// - DELETE /users/skills/wanted/:id - Remove wanted skill
+func SetupSkillRoutes(api *gin.RouterGroup, cfg *config.Config, skillHandler *skill.Handler) {
+	// Public skill routes (no authentication required)
+	skills := api.Group("/skills")
+	{
+		skills.GET("", skillHandler.GetAllSkills) // GET /api/v1/skills
+		skills.GET("/:id", skillHandler.GetSkill) // GET /api/v1/skills/:id
+	}
 
-	_ = api // Unused for now
-	_ = cfg // Unused for now
+	// Protected user skill routes (authentication required)
+	userSkills := api.Group("/users/skills")
+	userSkills.Use(middleware.JWTAuth(*cfg))
+	{
+		// Offered skills
+		userSkills.GET("/offered", skillHandler.GetUserOfferedSkills)      // GET /api/v1/users/skills/offered
+		userSkills.POST("/offered", skillHandler.AddOfferedSkill)          // POST /api/v1/users/skills/offered
+		userSkills.DELETE("/offered/:id", skillHandler.RemoveOfferedSkill) // DELETE /api/v1/users/skills/offered/:id
+
+		// Wanted skills
+		userSkills.GET("/wanted", skillHandler.GetUserWantedSkills)      // GET /api/v1/users/skills/wanted
+		userSkills.POST("/wanted", skillHandler.AddWantedSkill)          // POST /api/v1/users/skills/wanted
+		userSkills.DELETE("/wanted/:id", skillHandler.RemoveWantedSkill) // DELETE /api/v1/users/skills/wanted/:id
+	}
 }
