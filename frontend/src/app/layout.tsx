@@ -27,13 +27,13 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}>
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}
+			>
 				<SmoothScroll />
 				<QueryClientProvider>
 					<Navigation />
-					<main className="min-h-screen">
-						{children}
-					</main>
+					<main className="min-h-screen">{children}</main>
 				</QueryClientProvider>
 			</body>
 		</html>
