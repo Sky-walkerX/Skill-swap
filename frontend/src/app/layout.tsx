@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
+import NextAuthSessionProvider from '@/components/AuthProvider';
 import './globals.css';
 import { SmoothScroll } from '@/components/smooth-scroll';
 
@@ -28,7 +29,10 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-stone-50 via-amber-50 to-orange-50`}>
 				<SmoothScroll />
+				<NextAuthSessionProvider>
+					
 				<QueryClientProvider>{children}</QueryClientProvider>
+				</NextAuthSessionProvider>
 			</body>
 		</html>
 	);
