@@ -6,9 +6,10 @@ import "github.com/google/uuid"
 type UserSkillOffered struct {
 	UserID  uuid.UUID `gorm:"type:uuid;primaryKey;column:user_id"`
 	SkillID uuid.UUID `gorm:"type:uuid;primaryKey;column:skill_id"`
-	// FK constraints
-	User  User  `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
-	Skill Skill `gorm:"foreignKey:SkillID;constraint:OnDelete:CASCADE"`
+	
+	// Relations - restored
+	User  User  `gorm:"foreignKey:UserID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Skill Skill `gorm:"foreignKey:SkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (UserSkillOffered) TableName() string { return "user_skills_offered" }
@@ -17,8 +18,10 @@ func (UserSkillOffered) TableName() string { return "user_skills_offered" }
 type UserSkillWanted struct {
 	UserID  uuid.UUID `gorm:"type:uuid;primaryKey;column:user_id"`
 	SkillID uuid.UUID `gorm:"type:uuid;primaryKey;column:skill_id"`
-	User    User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
-	Skill   Skill     `gorm:"foreignKey:SkillID;constraint:OnDelete:CASCADE"`
+	
+	// Relations - restored
+	User  User  `gorm:"foreignKey:UserID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Skill Skill `gorm:"foreignKey:SkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (UserSkillWanted) TableName() string { return "user_skills_wanted" }

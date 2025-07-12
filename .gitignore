@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+cache/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backend environment files
+backend/**/.env
+backend/**/.env.local
+backend/**/.env.development.local
+backend/**/.env.test.local
+backend/**/.env.production.local
+
+# Go compiled binaries
+backend/skillswap/server
+backend/skillswap/skillswap
+backend/skillswap/main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test binary, built with `go test -c`
+*.test
+
+# Go output of `go build`
+*.out
+
+# Go coverage files
+*.cover
+*.coverprofile
+
+# Go mod cache
+go.sum.backup
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/

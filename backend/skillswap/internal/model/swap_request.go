@@ -17,7 +17,7 @@ const (
 )
 
 type SwapRequest struct {
-	SwapID         uuid.UUID   `gorm:"type:uuid;primaryKey;column:swap_id"`
+	SwapID         uuid.UUID   `gorm:"type:uuid;primaryKey;column:swap_id;default:gen_random_uuid()"`
 	RequesterID    uuid.UUID   `gorm:"type:uuid;column:requester_id;index"`
 	ResponderID    uuid.UUID   `gorm:"type:uuid;column:responder_id;index"`
 	OfferedSkillID uuid.UUID   `gorm:"type:uuid;column:offered_skill_id"`
@@ -27,12 +27,20 @@ type SwapRequest struct {
 	UpdatedAt      time.Time   `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt      gorm.DeletedAt `gorm:"column:deleted_at;index"`
 
-	// Relations
-	Requester    User  `gorm:"foreignKey:RequesterID;constraint:OnDelete:CASCADE"`
-	Responder    User  `gorm:"foreignKey:ResponderID;constraint:OnDelete:CASCADE"`
-	OfferedSkill Skill `gorm:"foreignKey:OfferedSkillID"`
-	WantedSkill  Skill `gorm:"foreignKey:WantedSkillID"`
-	Ratings      []SwapRating `gorm:"foreignKey:SwapID"`
+	// Relations - restored
+	Requester    User  `gorm:"foreignKey:RequesterID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Responder    User  `gorm:"foreignKey:ResponderID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	OfferedSkill Skill `gorm:"foreignKey:OfferedSkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	WantedSkill  Skill `gorm:"foreignKey:WantedSkillID;references:SkillID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Ratings      []SwapRating `gorm:"foreignKey:SwapID;references:SwapID"`
+}
+
+// BeforeCreate is called by GORM before creating a SwapRequest record
+func (s *SwapRequest) BeforeCreate(tx *gorm.DB) (err error) {
+	if s.SwapID == uuid.Nil {
+		s.SwapID = uuid.New()
+	}
+	return
 }
 
 func (SwapRequest) TableName() string { return "swap_requests" }
