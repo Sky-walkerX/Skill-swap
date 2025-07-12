@@ -355,6 +355,35 @@ func runAdditionalMigrations(db *gorm.DB) error {
 		log.Println("✓ Notifications table already exists")
 	}
 
+	// Check if photo storage fields exist
+	var hasPhotoData bool
+	err = db.Raw("SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='photo_data')").Scan(&hasPhotoData).Error
+	if err != nil {
+		return err
+	}
+
+	if !hasPhotoData {
+		log.Println("Adding photo storage fields to users table...")
+
+		// Add photo storage fields
+		sql := `
+			ALTER TABLE users 
+			ADD COLUMN IF NOT EXISTS photo_data BYTEA,
+			ADD COLUMN IF NOT EXISTS photo_mime_type VARCHAR(100);
+
+			-- Create index for photo queries
+			CREATE INDEX IF NOT EXISTS idx_users_has_photo ON users(photo_url) WHERE photo_url IS NOT NULL;
+		`
+
+		if err := db.Exec(sql).Error; err != nil {
+			return err
+		}
+
+		log.Println("✓ Added photo storage fields to users table")
+	} else {
+		log.Println("✓ Photo storage fields already exist")
+	}
+
 	return nil
 }
 

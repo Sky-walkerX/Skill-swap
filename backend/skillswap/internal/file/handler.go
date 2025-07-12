@@ -2,7 +2,6 @@ package file
 
 import (
 	"net/http"
-	"path/filepath"
 
 	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/app/service"
 	models "github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/model"
@@ -112,20 +111,18 @@ func (h *Handler) DeleteUserPhoto(c *gin.Context) {
 	})
 }
 
-// GetUserPhoto serves a user's profile photo
+// GetUserPhoto serves a user's profile photo from database
 // @Summary Get user profile photo
-// @Description Serve a user's profile photo file
+// @Description Serve a user's profile photo stored in database
 // @Tags files
 // @Produce image/jpeg,image/png,image/gif,image/webp
 // @Param user_id path string true "User ID"
-// @Param filename path string true "Photo filename"
 // @Success 200 {file} image
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/files/users/{user_id}/{filename} [get]
+// @Router /api/files/users/{user_id}/photo [get]
 func (h *Handler) GetUserPhoto(c *gin.Context) {
 	userIDStr := c.Param("user_id")
-	filename := c.Param("filename")
 
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
@@ -133,23 +130,23 @@ func (h *Handler) GetUserPhoto(c *gin.Context) {
 		return
 	}
 
-	// Get file info to verify it exists
-	_, err = h.fileUploadService.GetFileInfo(userID, filename)
+	// Get photo data from database
+	photoData, mimeType, err := h.fileUploadService.GetUserPhoto(userID)
 	if err != nil {
-		if err.Error() == "file not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		if err.Error() == "user not found" || err.Error() == "user has no photo" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Photo not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file info"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get photo"})
 		return
 	}
 
-	// Construct file path
-	uploadDir := "./uploads" // This should come from config
-	filePath := filepath.Join(uploadDir, "users", userID.String(), filename)
+	// Set appropriate headers
+	c.Header("Content-Type", mimeType)
+	c.Header("Cache-Control", "public, max-age=86400") // Cache for 24 hours
 
-	// Serve the file
-	c.File(filePath)
+	// Serve the image data
+	c.Data(http.StatusOK, mimeType, photoData)
 }
 
 // GetUserPhotoInfo gets information about a user's profile photo
@@ -158,17 +155,15 @@ func (h *Handler) GetUserPhoto(c *gin.Context) {
 // @Tags files
 // @Produce json
 // @Param user_id path string true "User ID"
-// @Param filename path string true "Photo filename"
 // @Security BearerAuth
 // @Success 200 {object} models.FileInfo
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/files/users/{user_id}/{filename}/info [get]
+// @Router /api/files/users/{user_id}/info [get]
 func (h *Handler) GetUserPhotoInfo(c *gin.Context) {
 	userIDStr := c.Param("user_id")
-	filename := c.Param("filename")
 
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
@@ -176,13 +171,13 @@ func (h *Handler) GetUserPhotoInfo(c *gin.Context) {
 		return
 	}
 
-	fileInfo, err := h.fileUploadService.GetFileInfo(userID, filename)
+	fileInfo, err := h.fileUploadService.GetFileInfo(userID)
 	if err != nil {
-		if err.Error() == "file not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		if err.Error() == "user not found" || err.Error() == "user has no photo" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Photo not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file info"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get photo info"})
 		return
 	}
 
