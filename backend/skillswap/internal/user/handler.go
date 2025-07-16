@@ -46,7 +46,11 @@ func (h *Handler) GetProfile(c *gin.Context) {
 
 	profile, err := h.userService.GetProfile(userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		if err.Error() == "record not found" { // Assuming GORM's not found error
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user profile"})
+		}
 		return
 	}
 
@@ -94,6 +98,11 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 }
 
+const (
+	DefaultPage  = 1
+	DefaultLimit = 10
+)
+
 // SearchUsers godoc
 // @Summary Search users
 // @Description Search for users by location or search term
@@ -112,8 +121,8 @@ func (h *Handler) SearchUsers(c *gin.Context) {
 	req := appservice.SearchUsersRequest{
 		Location:   c.Query("location"),
 		SearchTerm: c.Query("search_term"),
-		Page:       1,
-		Limit:      10,
+		Page:       DefaultPage,
+		Limit:      DefaultLimit,
 	}
 
 	if pageStr := c.Query("page"); pageStr != "" {

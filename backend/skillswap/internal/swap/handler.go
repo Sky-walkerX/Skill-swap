@@ -234,19 +234,17 @@ func (h *Handler) GetSwapRequest(c *gin.Context) {
 		return
 	}
 
-	swap, err := h.swapService.GetSwapRequestByID(swapID)
+	swap, err := h.swapService.GetSwapRequestByID(swapID, userID)
 	if err != nil {
 		if err.Error() == "swap request not found" {
 			c.JSON(http.StatusNotFound, ErrorResponse{Error: "Swap request not found"})
 			return
 		}
+		if err.Error() == "access denied" {
+			c.JSON(http.StatusForbidden, ErrorResponse{Error: "Access denied"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to fetch swap request"})
-		return
-	}
-
-	// Check if user is involved in the swap
-	if swap.RequesterID != userID && swap.ResponderID != userID {
-		c.JSON(http.StatusForbidden, ErrorResponse{Error: "Access denied"})
 		return
 	}
 

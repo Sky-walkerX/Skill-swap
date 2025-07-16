@@ -75,7 +75,8 @@ func (s *authService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	// Check if user already exists
 	existingUser, _ := s.userRepo.GetByEmail(req.Email)
 	if existingUser != nil {
-		return nil, errors.New("user with this email already exists")
+		// Return a generic error to avoid user enumeration
+		return nil, errors.New("failed to create user")
 	}
 
 	// Hash password

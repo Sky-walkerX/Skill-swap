@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/Sky-walkerX/Skill-swap/backend/skillswap/internal/app/repository"
@@ -80,12 +81,21 @@ func (s *userService) UpdateProfile(userID uuid.UUID, req *UpdateProfileRequest)
 	}
 
 	if req.Name != nil {
+		if len(*req.Name) < 2 || len(*req.Name) > 100 {
+			return errors.New("name must be between 2 and 100 characters")
+		}
 		user.Name = *req.Name
 	}
 	if req.Location != nil {
+		if len(*req.Location) > 100 {
+			return errors.New("location must be less than 100 characters")
+		}
 		user.Location = req.Location
 	}
 	if req.PhotoURL != nil {
+		if len(*req.PhotoURL) > 255 {
+			return errors.New("photo URL must be less than 255 characters")
+		}
 		user.PhotoURL = req.PhotoURL
 	}
 	if req.IsPublic != nil {

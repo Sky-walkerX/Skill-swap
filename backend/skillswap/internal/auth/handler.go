@@ -38,11 +38,7 @@ func (h *Handler) Register(c *gin.Context) {
 
 	response, err := h.authService.Register(&req)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
-		if err.Error() == "user with this email already exists" {
-			statusCode = http.StatusConflict
-		}
-		c.JSON(statusCode, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

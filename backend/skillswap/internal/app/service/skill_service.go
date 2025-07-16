@@ -109,12 +109,6 @@ func (s *skillService) DeleteSkill(skillID uuid.UUID) error {
 
 // AddOfferedSkill adds a skill to user's offered skills
 func (s *skillService) AddOfferedSkill(userID, skillID uuid.UUID) error {
-	// Check if skill exists
-	_, err := s.GetSkillByID(skillID)
-	if err != nil {
-		return err
-	}
-
 	// Check if already exists
 	var count int64
 	s.db.Model(&models.UserSkillOffered{}).Where("user_id = ? AND skill_id = ?", userID, skillID).Count(&count)
@@ -141,12 +135,6 @@ func (s *skillService) RemoveOfferedSkill(userID, skillID uuid.UUID) error {
 
 // AddWantedSkill adds a skill to user's wanted skills
 func (s *skillService) AddWantedSkill(userID, skillID uuid.UUID) error {
-	// Check if skill exists
-	_, err := s.GetSkillByID(skillID)
-	if err != nil {
-		return err
-	}
-
 	// Check if already exists
 	var count int64
 	s.db.Model(&models.UserSkillWanted{}).Where("user_id = ? AND skill_id = ?", userID, skillID).Count(&count)

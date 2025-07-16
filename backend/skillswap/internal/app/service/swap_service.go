@@ -11,7 +11,7 @@ import (
 type SwapService interface {
 	// Swap request CRUD operations
 	CreateSwapRequest(req *CreateSwapRequestDTO) (*models.SwapRequest, error)
-	GetSwapRequestByID(swapID uuid.UUID) (*models.SwapRequest, error)
+	GetSwapRequestByID(swapID uuid.UUID, userID uuid.UUID) (*models.SwapRequest, error)
 	GetUserSwapRequests(userID uuid.UUID, filter SwapRequestFilter) ([]models.SwapRequest, error)
 	UpdateSwapStatus(swapID uuid.UUID, userID uuid.UUID, status models.SwapStatus) (*models.SwapRequest, error)
 	DeleteSwapRequest(swapID uuid.UUID, userID uuid.UUID) error
@@ -63,45 +63,62 @@ func NewSwapService(db *gorm.DB) SwapService {
 
 // CreateSwapRequest creates a new swap request
 func (s *swapService) CreateSwapRequest(req *CreateSwapRequestDTO) (*models.SwapRequest, error) {
+	// Use a transaction to ensure atomicity
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
 	// Validate that requester and responder are different
 	if req.RequesterID == req.ResponderID {
+		tx.Rollback()
 		return nil, errors.New("cannot create swap request with yourself")
 	}
 
 	// Validate that requester offers the offered skill
 	var offeredCount int64
-	s.db.Model(&models.UserSkillOffered{}).
+	tx.Model(&models.UserSkillOffered{}).
 		Where("user_id = ? AND skill_id = ?", req.RequesterID, req.OfferedSkillID).
 		Count(&offeredCount)
 	if offeredCount == 0 {
+		tx.Rollback()
 		return nil, errors.New("you don't offer the specified skill")
 	}
 
 	// Validate that responder wants the offered skill
 	var wantedCount int64
-	s.db.Model(&models.UserSkillWanted{}).
+	tx.Model(&models.UserSkillWanted{}).
 		Where("user_id = ? AND skill_id = ?", req.ResponderID, req.OfferedSkillID).
 		Count(&wantedCount)
 	if wantedCount == 0 {
+		tx.Rollback()
 		return nil, errors.New("responder doesn't want the offered skill")
 	}
 
 	// Validate that responder offers the wanted skill
 	var responderOffersCount int64
-	s.db.Model(&models.UserSkillOffered{}).
+	tx.Model(&models.UserSkillOffered{}).
 		Where("user_id = ? AND skill_id = ?", req.ResponderID, req.WantedSkillID).
 		Count(&responderOffersCount)
 	if responderOffersCount == 0 {
+		tx.Rollback()
 		return nil, errors.New("responder doesn't offer the requested skill")
 	}
 
 	// Check for existing pending request between same users and skills
 	var existingCount int64
-	s.db.Model(&models.SwapRequest{}).
+	tx.Model(&models.SwapRequest{}).
 		Where("requester_id = ? AND responder_id = ? AND offered_skill_id = ? AND wanted_skill_id = ? AND status = ?",
 			req.RequesterID, req.ResponderID, req.OfferedSkillID, req.WantedSkillID, models.StatusPending).
 		Count(&existingCount)
 	if existingCount > 0 {
+		tx.Rollback()
 		return nil, errors.New("pending swap request already exists")
 	}
 
@@ -113,21 +130,24 @@ func (s *swapService) CreateSwapRequest(req *CreateSwapRequestDTO) (*models.Swap
 		Status:         models.StatusPending,
 	}
 
-	err := s.db.Create(swapRequest).Error
-	if err != nil {
+	if err := tx.Create(swapRequest).Error; err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 
 	// Load relationships
-	err = s.db.Preload("Requester").Preload("Responder").
+	if err := tx.Preload("Requester").Preload("Responder").
 		Preload("OfferedSkill").Preload("WantedSkill").
-		First(swapRequest, swapRequest.SwapID).Error
+		First(swapRequest, swapRequest.SwapID).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
-	return swapRequest, err
+	return swapRequest, tx.Commit().Error
 }
 
 // GetSwapRequestByID retrieves a swap request by ID
-func (s *swapService) GetSwapRequestByID(swapID uuid.UUID) (*models.SwapRequest, error) {
+func (s *swapService) GetSwapRequestByID(swapID uuid.UUID, userID uuid.UUID) (*models.SwapRequest, error) {
 	var swapRequest models.SwapRequest
 	err := s.db.Preload("Requester").Preload("Responder").
 		Preload("OfferedSkill").Preload("WantedSkill").
@@ -138,6 +158,11 @@ func (s *swapService) GetSwapRequestByID(swapID uuid.UUID) (*models.SwapRequest,
 			return nil, errors.New("swap request not found")
 		}
 		return nil, err
+	}
+
+	// Check if user is involved in the swap
+	if swapRequest.RequesterID != userID && swapRequest.ResponderID != userID {
+		return nil, errors.New("access denied")
 	}
 
 	return &swapRequest, nil
@@ -185,7 +210,7 @@ func (s *swapService) GetUserSwapRequests(userID uuid.UUID, filter SwapRequestFi
 // UpdateSwapStatus updates the status of a swap request
 func (s *swapService) UpdateSwapStatus(swapID uuid.UUID, userID uuid.UUID, status models.SwapStatus) (*models.SwapRequest, error) {
 	// Get the swap request
-	swapRequest, err := s.GetSwapRequestByID(swapID)
+	swapRequest, err := s.GetSwapRequestByID(swapID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -221,10 +246,10 @@ func (s *swapService) UpdateSwapStatus(swapID uuid.UUID, userID uuid.UUID, statu
 
 // DeleteSwapRequest deletes a swap request (only requester can delete)
 func (s *swapService) DeleteSwapRequest(swapID uuid.UUID, userID uuid.UUID) error {
-	swapRequest, err := s.GetSwapRequestByID(swapID)
-	if err != nil {
-		return err
-	}
+			swapRequest, err := s.GetSwapRequestByID(swapID, userID)
+		if err != nil {
+			return err
+		}
 
 	// Only requester can delete
 	if swapRequest.RequesterID != userID {
@@ -239,17 +264,21 @@ func (s *swapService) DeleteSwapRequest(swapID uuid.UUID, userID uuid.UUID) erro
 	return s.db.Delete(&models.SwapRequest{}, "swap_id = ?", swapID).Error
 }
 
+const (
+	DefaultSwapRequestLimit = 50
+)
+
 // GetSwapRequestsForUser retrieves organized swap requests for a user
 func (s *swapService) GetSwapRequestsForUser(userID uuid.UUID) (*SwapRequestsResponse, error) {
 	// Get sent requests
-	sentFilter := SwapRequestFilter{Sent: true, Limit: 50}
+	sentFilter := SwapRequestFilter{Sent: true, Limit: DefaultSwapRequestLimit}
 	sent, err := s.GetUserSwapRequests(userID, sentFilter)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get received requests
-	receivedFilter := SwapRequestFilter{Received: true, Limit: 50}
+	receivedFilter := SwapRequestFilter{Received: true, Limit: DefaultSwapRequestLimit}
 	received, err := s.GetUserSwapRequests(userID, receivedFilter)
 	if err != nil {
 		return nil, err
@@ -287,60 +316,34 @@ func (s *swapService) GetSwapHistory(userID uuid.UUID) ([]models.SwapRequest, er
 func (s *swapService) FindPotentialMatches(userID uuid.UUID) ([]SwapMatch, error) {
 	var matches []SwapMatch
 
-	// Get user's offered skills
-	var userOfferedSkills []models.Skill
-	err := s.db.Table("skills").
-		Joins("JOIN user_skills_offered ON skills.skill_id = user_skills_offered.skill_id").
-		Where("user_skills_offered.user_id = ?", userID).
-		Find(&userOfferedSkills).Error
-	if err != nil {
-		return nil, err
-	}
+	// This query finds users who want a skill that the current user offers,
+	// and who offer a skill that the current user wants.
+	// It joins the user's offered and wanted skills with other users' wanted and offered skills.
+	// It's a more efficient way to find matches than iterating through all skills in Go.
+	err := s.db.Raw(`
+		SELECT
+			u.*,
+			so.skill_id AS offered_skill_id,
+			sw.skill_id AS wanted_skill_id,
+			80 AS match_score
+		FROM
+			users u
+		JOIN
+			user_skills_offered uso ON u.user_id = uso.user_id
+		JOIN
+			user_skills_wanted usw ON u.user_id = usw.user_id
+		JOIN
+			skills so ON uso.skill_id = so.skill_id
+		JOIN
+			skills sw ON usw.skill_id = sw.skill_id
+		WHERE
+			uso.skill_id IN (SELECT skill_id FROM user_skills_wanted WHERE user_id = ?)
+			AND usw.skill_id IN (SELECT skill_id FROM user_skills_offered WHERE user_id = ?)
+			AND u.user_id != ?
+			AND u.is_public = true
+			AND u.deleted_at IS NULL
+		LIMIT 20
+	`, userID, userID, userID).Scan(&matches).Error
 
-	// Get user's wanted skills
-	var userWantedSkills []models.Skill
-	err = s.db.Table("skills").
-		Joins("JOIN user_skills_wanted ON skills.skill_id = user_skills_wanted.skill_id").
-		Where("user_skills_wanted.user_id = ?", userID).
-		Find(&userWantedSkills).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Find users who want what we offer and offer what we want
-	for _, offeredSkill := range userOfferedSkills {
-		for _, wantedSkill := range userWantedSkills {
-			// Find users who want our offered skill AND offer our wanted skill
-			var potentialUsers []models.User
-			err := s.db.Table("users").
-				Joins("JOIN user_skills_wanted ON users.user_id = user_skills_wanted.user_id").
-				Joins("JOIN user_skills_offered ON users.user_id = user_skills_offered.user_id").
-				Where("user_skills_wanted.skill_id = ? AND user_skills_offered.skill_id = ? AND users.user_id != ? AND users.is_public = true AND users.deleted_at IS NULL",
-					offeredSkill.SkillID, wantedSkill.SkillID, userID).
-				Find(&potentialUsers).Error
-
-			if err != nil {
-				continue
-			}
-
-			for _, user := range potentialUsers {
-				// Calculate match score (simple algorithm for now)
-				matchScore := 80 // Base score for mutual skill match
-
-				matches = append(matches, SwapMatch{
-					User:         user,
-					OfferedSkill: offeredSkill,
-					WantedSkill:  wantedSkill,
-					MatchScore:   matchScore,
-				})
-			}
-		}
-	}
-
-	// Limit results
-	if len(matches) > 20 {
-		matches = matches[:20]
-	}
-
-	return matches, nil
+	return matches, err
 }
